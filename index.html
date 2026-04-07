@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Rasmi BPK</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-color: #ffffff;
+            --accent-gold: #FFD700;
+        }
+
+        [data-theme="light"] {
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-color: #1a1a1a;
+        }
+
+        html { font-size: 14px; scroll-behavior: smooth; }
+        @media (min-width: 768px) { html { font-size: 16px; } }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.5s ease;
+            background-color: #020617; 
+            overflow-x: hidden;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        /* BACKGROUND FADE JATA NEGARA */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/26/Coat_of_arms_of_Malaysia.svg');
+            background-repeat: no-repeat;
+            background-position: center 35%;
+            background-size: 320px;
+            opacity: 0.12; 
+            pointer-events: none;
+        }
+
+        @media (min-width: 768px) {
+            body::before { background-size: 550px; background-position: center center; }
+        }
+
+        [data-theme="light"] body { background-color: #f1f5f9; }
+        [data-theme="light"] body::before { opacity: 0.08; }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Drawing Animation */
+        #hand-drawing-text {
+            display: inline-block;
+            clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+            transition: clip-path 4s linear;
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-family: 'Dancing Script', cursive;
+        }
+        #hand-drawing-text.start-drawing { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: 0.6s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .lang-en, .lang-my { display: none; }
+        .active-lang { display: block; }
+
+        /* Search Overlay Style */
+        #searchBar { transform: translateY(-100%); transition: 0.4s ease-in-out; }
+        #searchBar.active { transform: translateY(0); }
+
+        /* Modal Style */
+        .modal { display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
+        .modal.active { display: flex; }
+
+        .clickable-card { cursor: pointer; transition: 0.3s; }
+        .clickable-card:hover { transform: scale(1.03); background: rgba(255,255,255,0.1); }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Entry Overlay -->
+    <div id="overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950 text-center p-6 transition-opacity duration-700">
+        <img src="https://github.com/ttv4u1/KPVV/raw/main/BPK.svg" class="h-32 mb-6 animate-pulse">
+        <h2 class="lang-en active-lang text-white text-2xl font-bold tracking-widest uppercase">BPK Official Portal</h2>
+        <h2 class="lang-my text-white text-2xl font-bold tracking-widest uppercase">Portal Rasmi BPK</h2>
+        <p class="lang-en active-lang text-yellow-500 text-sm mb-10 tracking-[0.2em] uppercase">Veterinary Enforcement Division</p>
+        <p class="lang-my text-yellow-500 text-sm mb-10 tracking-[0.2em] uppercase">Bahagian Penguat Kuasa Veterinar</p>
+        <button onclick="startSite()" class="px-10 py-4 bg-yellow-500 text-black font-bold rounded-full shadow-2xl hover:scale-105 active:scale-95 transition">
+            <span class="lang-en active-lang">ENTER PORTAL</span><span class="lang-my">MASUK PORTAL</span>
+        </button>
+    </div>
+
+    <!-- Search Bar (Top Hide) -->
+    <div id="searchBar" class="fixed top-0 left-0 w-full glass z-[150] p-4 flex justify-center items-center shadow-2xl">
+        <div class="relative w-full max-w-2xl">
+            <input type="text" placeholder="Search for services, acts..." class="w-full bg-black/20 border border-white/20 p-4 rounded-full text-white outline-none focus:border-yellow-500">
+            <button onclick="toggleSearch()" class="absolute right-5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"><i class="fa-solid fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="mainHeader" class="fixed top-0 w-full z-50 p-2">
+        <div class="max-w-7xl mx-auto glass rounded-xl px-3 py-2 flex flex-col md:flex-row items-center gap-3">
+            <div class="w-full flex justify-between items-center px-1">
+                <div class="flex items-center space-x-2">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Coat_of_arms_of_Malaysia.svg/200px-Coat_of_arms_of_Malaysia.svg.png" class="h-7 md:h-10">
+                    <img src="https://github.com/ttv4u1/KPVV/raw/main/BPK.svg" class="h-7 md:h-10">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleSearch()" class="glass p-1.5 rounded-full border-none"><i class="fa-solid fa-search"></i></button>
+                    <button onclick="toggleLanguage()" class="glass px-2 py-1 text-[10px] font-bold">EN/MY</button>
+                    <button onclick="toggleTheme()" class="glass p-1.5 rounded-full border-none"><span id="themeIcon">🌙</span></button>
+                </div>
+            </div>
+
+            <nav class="nav-container w-full">
+                <div class="flex items-center justify-between md:justify-end md:space-x-6 min-w-max px-2 pb-1">
+                    <a href="#home" class="nav-link flex flex-col items-center text-[10px] min-w-[60px]"><i class="fa-solid fa-house text-blue-400 mb-1"></i><span class="lang-en active-lang">Home</span><span class="lang-my">Utama</span></a>
+                    <a href="#corporate" class="nav-link flex flex-col items-center text-[10px] min-w-[60px]"><i class="fa-solid fa-building text-yellow-400 mb-1"></i><span class="lang-en active-lang">Corporate</span><span class="lang-my">Korporat</span></a>
+                    <a href="#services" class="nav-link flex flex-col items-center text-[10px] min-w-[60px]"><i class="fa-solid fa-hand-holding-heart text-green-400 mb-1"></i><span class="lang-en active-lang">Services</span><span class="lang-my">Servis</span></a>
+                    <a href="#digital" class="nav-link flex flex-col items-center text-[10px] min-w-[60px]"><i class="fa-solid fa-laptop-code text-cyan-400 mb-1"></i><span class="lang-en active-lang">Digital</span><span class="lang-my">Digital</span></a>
+                    <a href="#acts" class="nav-link flex flex-col items-center text-[10px] min-w-[60px]"><i class="fa-solid fa-scale-balanced text-red-400 mb-1"></i><span class="lang-en active-lang">Acts</span><span class="lang-my">Akta</span></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mt-40 px-4 max-w-6xl mx-auto space-y-24 pb-20 relative z-10">
+        
+        <!-- HOME SECTION -->
+        <section id="home" class="reveal text-center">
+            <div class="drawing-container mb-6"><h1 id="hand-drawing-text" class="text-yellow-500 font-bold"></h1></div>
+            <div class="video-container glass border border-white/10 shadow-2xl">
+                <video id="promoVideo" loop playsinline class="w-full h-full object-cover">
+                    <source src="https://github.com/ttv4u1/KPVV/raw/main/VKPV.mp4">
+                </video>
+            </div>
+        </section>
+
+        <!-- SERVICES SECTION -->
+        <section id="services" class="reveal space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold lang-en active-lang">Our Services</h2>
+                <h2 class="text-3xl font-bold lang-my">Perkhidmatan Kami</h2>
+                <p class="text-xs opacity-50 mt-1 lang-en active-lang">Click each card to see more details</p>
+                <p class="text-xs opacity-50 mt-1 lang-my">Klik setiap kad untuk lihat butiran</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass p-6 rounded-2xl text-center clickable-card" onclick="openDetails('intelligence')">
+                    <i class="fa-solid fa-magnifying-glass text-3xl mb-4 text-blue-400"></i>
+                    <h4 class="font-bold lang-en active-lang">Intelligence</h4>
+                    <h4 class="font-bold lang-my">Risikan</h4>
+                </div>
+                <div class="glass p-6 rounded-2xl text-center clickable-card" onclick="openDetails('investigation')">
+                    <i class="fa-solid fa-file-signature text-3xl mb-4 text-yellow-400"></i>
+                    <h4 class="font-bold lang-en active-lang">Investigation</h4>
+                    <h4 class="font-bold lang-my">Siasatan</h4>
+                </div>
+                <div class="glass p-6 rounded-2xl text-center clickable-card" onclick="openDetails('prosecution')">
+                    <i class="fa-solid fa-gavel text-3xl mb-4 text-red-400"></i>
+                    <h4 class="font-bold lang-en active-lang">Prosecution</h4>
+                    <h4 class="font-bold lang-my">Pendakwaan</h4>
+                </div>
+                <div class="glass p-6 rounded-2xl text-center clickable-card" onclick="openDetails('operations')">
+                    <i class="fa-solid fa-shield-halved text-3xl mb-4 text-green-400"></i>
+                    <h4 class="font-bold lang-en active-lang">Operations</h4>
+                    <h4 class="font-bold lang-my">Operasi</h4>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTS SECTION -->
+        <section id="acts" class="reveal space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold lang-en active-lang">Legislation</h2>
+                <h2 class="text-3xl font-bold lang-my">Perundangan</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass p-6 rounded-2xl clickable-card" onclick="openDetails('act647')">
+                    <h5 class="font-bold text-red-400 mb-2">Animals Act 1953</h5>
+                    <p class="text-sm opacity-70">Act 647: Regulating import, export...</p>
+                </div>
+                <div class="glass p-6 rounded-2xl clickable-card" onclick="openDetails('act772')">
+                    <h5 class="font-bold text-red-400 mb-2">Animal Welfare Act 2015</h5>
+                    <p class="text-sm opacity-70">Act 772: Well-being protection...</p>
+                </div>
+                <div class="glass p-6 rounded-2xl clickable-card" onclick="openDetails('act507')">
+                    <h5 class="font-bold text-red-400 mb-2">Abattoir Act 1993</h5>
+                    <p class="text-sm opacity-70">Act 507: Slaughter control...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Details -->
+    <div id="detailsModal" class="modal">
+        <div class="glass max-w-lg w-full p-8 rounded-3xl relative mx-4">
+            <button onclick="closeDetails()" class="absolute top-4 right-5 text-2xl hover:text-red-500">&times;</button>
+            <div id="modalContent" class="space-y-4">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const heroContent = { en: "Empowering National Veterinary Excellence", my: "Memperkasa Kecemerlangan Veterinar Negara" };
+        let currentLang = 'en';
+
+        // Data for details
+        const detailsData = {
+            intelligence: {
+                en: "<h3>Intelligence</h3><p>Collecting strategic data on illegal livestock smuggling and disease hotspots across national borders.</p>",
+                my: "<h3>Risikan</h3><p>Mengumpul data strategik mengenai penyeludupan ternakan haram dan kawasan panas penyakit di sempadan negara.</p>"
+            },
+            investigation: {
+                en: "<h3>Investigation</h3><p>Comprehensive procedures for documenting evidence and questioning suspects for veterinary offences.</p>",
+                my: "<h3>Siasatan</h3><p>Prosedur komprehensif untuk mendokumentasikan bukti dan menyoal siasat suspek bagi kesalahan veterinar.</p>"
+            },
+            prosecution: {
+                en: "<h3>Prosecution</h3><p>Bringing lawbreakers to court to ensure justice and legal compliance in the livestock industry.</p>",
+                my: "<h3>Pendakwaan</h3><p>Membawa pelanggar undang-undang ke mahkamah untuk memastikan keadilan dan kepatuhan perundangan.</p>"
+            },
+            operations: {
+                en: "<h3>Operations</h3><p>Conducting raids, checkpoints, and monitoring on the ground to enforce animal laws effectively.</p>",
+                my: "<h3>Operasi</h3><p>Menjalankan serbuan, sekatan jalan raya, dan pemantauan di lapangan untuk menguatkuasakan undang-undang haiwan.</p>"
+            },
+            act647: {
+                en: "<h3>Animals Act 1953</h3><p>Empowers BPK to control animal movements, prevent disease spread, and manage import/export licenses.</p>",
+                my: "<h3>Akta Haiwan 1953</h3><p>Memberi kuasa kepada BPK untuk mengawal pergerakan haiwan, mencegah penyebaran penyakit, dan mengurus lesen import/eksport.</p>"
+            },
+            act772: {
+                en: "<h3>Animal Welfare Act 2015</h3><p>Focuses on humane treatment, licensing of animal businesses, and penalties for cruelty.</p>",
+                my: "<h3>Akta Kebajikan Haiwan 2015</h3><p>Fokus kepada rawatan berperikemanusiaan, pelesenan perniagaan haiwan, dan penalti bagi penganiayaan.</p>"
+            },
+            act507: {
+                en: "<h3>Abattoir Act 1993</h3><p>Regulation of slaughterhouses to ensure hygienic meat production for public consumption.</p>",
+                my: "<h3>Akta Rumah Sembelih 1993</h3><p>Peraturan rumah sembelih untuk menjamin pengeluaran daging yang bersih bagi kegunaan awam.</p>"
+            }
+        };
+
+        function startHandDrawing() {
+            const el = document.getElementById('hand-drawing-text');
+            el.classList.remove('start-drawing');
+            el.innerText = heroContent[currentLang];
+            void el.offsetWidth;
+            el.classList.add('start-drawing');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'my' : 'en';
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('active-lang', currentLang === 'en'));
+            document.querySelectorAll('.lang-my').forEach(el => el.classList.toggle('active-lang', currentLang === 'my'));
+            startHandDrawing();
+        }
+
+        function toggleSearch() { document.getElementById('searchBar').classList.toggle('active'); }
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            document.getElementById('themeIcon').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        function openDetails(key) {
+            const content = detailsData[key][currentLang];
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('detailsModal').classList.add('active');
+        }
+        function closeDetails() { document.getElementById('detailsModal').classList.remove('active'); }
+
+        function startSite() {
+            const overlay = document.getElementById('overlay');
+            const video = document.getElementById('promoVideo');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                video.muted = false;
+                video.play().catch(() => { video.muted = true; video.play(); });
+                startHandDrawing();
+            }, 700);
+        }
+
+        function reveal() {
+            document.querySelectorAll('.reveal').forEach(el => {
+                const revealTop = el.getBoundingClientRect().top;
+                if (revealTop < window.innerHeight - 100) el.classList.add('active');
+            });
+        }
+        window.addEventListener('scroll', reveal);
+        reveal();
+    </script>
+</body>
+</html>
